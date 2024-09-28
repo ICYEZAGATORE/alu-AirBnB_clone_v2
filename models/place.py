@@ -29,16 +29,8 @@ class Place(BaseModel, Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
 
-    amenities = relationship('Amenity', secondary=place_amenity, viewonly=False)
-    
-    # Ensure the Amenity class has a corresponding relationship attribute
-    class Amenity(BaseModel, Base):
-        """ Amenity class """
-        
-        __tablename__ = 'amenities'
-        
-        name = Column(String(128), nullable=False)
-        place_amenities = relationship('Place', secondary=place_amenity, viewonly=False)
+    # Many-to-Many relationship with Amenity using the place_amenity table
+    amenities = relationship("Amenity", secondary=place_amenity, viewonly=False)
 
     # For FileStorage
     @property
