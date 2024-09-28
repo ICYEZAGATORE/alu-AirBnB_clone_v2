@@ -9,20 +9,21 @@ class FileStorage:
     __objects = {}
 
     def all(self, cls=None):
-        """Returns a dictionary of models currently in storage"""
-       
+        """Returns a dictionary of models currently in storage.
+        
+        If a class is provided, it returns objects of that class.
+        """
         if cls:
             temp = {}
-            for key, val in self.__objects.items():
-                if key.split('.')[0] == cls.__name__:
+            for key, val in FileStorage.__objects.items():
+                if isinstance(val, cls):
                     temp[key] = val
             return temp
         return FileStorage.__objects
-       
 
     def new(self, obj):
         """Adds new object to storage dictionary"""
-        self.all().update({obj.to_dict()['__class__'] + '.' + obj.id: obj})
+        FileStorage.__objects[obj.to_dict()['__class__'] + '.' + obj.id] = obj
 
     def save(self):
         """Saves storage dictionary to file"""
@@ -44,15 +45,25 @@ class FileStorage:
         from models.review import Review
 
         classes = {
-                    'BaseModel': BaseModel, 'User': User, 'Place': Place,
-                    'State': State, 'City': City, 'Amenity': Amenity,
-                    'Review': Review
-                  }
+            'BaseModel': BaseModel, 'User': User, 'Place': Place,
+            'State': State, 'City': City, 'Amenity': Amenity,
+            'Review': Review
+        }
         try:
-            temp = {}
             with open(FileStorage.__file_path, 'r') as f:
                 temp = json.load(f)
                 for key, val in temp.items():
-                        self.all()[key] = classes[val['__class__']](**val)
+                    FileStorage.__objects[key] = classes[val['__class__']](**val)
         except FileNotFoundError:
             pass
+
+    def delete(self, obj=None):
+        """Deletes obj from __objects if it's inside.
+        
+        If obj is None, it does nothing.
+        """
+        if obj is None:
+            return
+        key = obj.to_dict()['__class__'] + '.' + obj.id
+        if key in FileStorage.__objects:
+            del FileStorage.__objects[key]
