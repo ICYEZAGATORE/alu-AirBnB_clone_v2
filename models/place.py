@@ -21,20 +21,19 @@ class Place(BaseModel, Base):
     price_by_night = Column(Integer, default=0, nullable=False)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
-    
+
     # Relationship with Amenity using many-to-many
     amenities = relationship("Amenity", secondary=place_amenity, viewonly=False)
 
+    # For FileStorage
     @property
     def amenities(self):
-        """Getter for amenities (FileStorage)"""
-        if models.storage_t == 'db':
-            return self._amenities
-        else:
+        """Getter for amenities in FileStorage"""
+        if models.storage_t != 'db':
             return [amenity for amenity in models.storage.all(Amenity).values() if amenity.id in self.amenity_ids]
 
     @amenities.setter
     def amenities(self, obj):
-        """Setter for amenities (FileStorage)"""
-        if isinstance(obj, Amenity):
+        """Setter for amenities in FileStorage"""
+        if isinstance(obj, Amenity) and obj.id not in self.amenity_ids:
             self.amenity_ids.append(obj.id)
