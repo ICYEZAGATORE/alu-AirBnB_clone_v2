@@ -1,10 +1,17 @@
 #!/usr/bin/python3
 """ Place Module for HBNB project """
 from models.base_model import BaseModel, Base
-from sqlalchemy import Column, String, Integer, Float, ForeignKey
+from sqlalchemy import Column, String, Integer, Float, ForeignKey, Table
 from sqlalchemy.orm import relationship
-from models.amenity import Amenity, place_amenity
+from models.amenity import Amenity
 import models
+
+# Define the place_amenity table for the Many-to-Many relationship
+place_amenity = Table(
+    'place_amenity', Base.metadata,
+    Column('place_id', String(60), ForeignKey('places.id'), primary_key=True, nullable=False),
+    Column('amenity_id', String(60), ForeignKey('amenities.id'), primary_key=True, nullable=False)
+)
 
 class Place(BaseModel, Base):
     """ A place to stay """
@@ -22,7 +29,7 @@ class Place(BaseModel, Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
 
-    # Relationship with Amenity using many-to-many
+    # Many-to-Many relationship with Amenity using the place_amenity table
     amenities = relationship("Amenity", secondary=place_amenity, viewonly=False)
 
     # For FileStorage
