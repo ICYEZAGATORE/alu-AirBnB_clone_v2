@@ -3,6 +3,8 @@
 from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String, Integer, Float, ForeignKey
 from sqlalchemy.orm import relationship
+from models.amenity import Amenity, place_amenity
+import models
 
 class Place(BaseModel, Base):
     """ A place to stay """
@@ -19,15 +21,20 @@ class Place(BaseModel, Base):
     price_by_night = Column(Integer, default=0, nullable=False)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
-    amenity_ids = []
-
-    # Relationship to Review with cascading delete
-    reviews = relationship("Review", backref="place", cascade="all, delete")
+    
+    # Relationship with Amenity using many-to-many
+    amenities = relationship("Amenity", secondary=place_amenity, viewonly=False)
 
     @property
-    def reviews(self):
-        """Getter for FileStorage to return the list of Review instances."""
+    def amenities(self):
+        """Getter for amenities (FileStorage)"""
         if models.storage_t == 'db':
-            return self.reviews
+            return self._amenities
         else:
-            return [review for review in models.storage.all(Review).values() if review.place_id == self.id]
+            return [amenity for amenity in models.storage.all(Amenity).values() if amenity.id in self.amenity_ids]
+
+    @amenities.setter
+    def amenities(self, obj):
+        """Setter for amenities (FileStorage)"""
+        if isinstance(obj, Amenity):
+            self.amenity_ids.append(obj.id)
