@@ -19,4 +19,15 @@ class Place(BaseModel, Base):
     price_by_night = Column(Integer, default=0, nullable=False)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
-    amenity_ids = []  # Placeholder, relationship can be added if needed
+    amenity_ids = []
+
+    # Relationship to Review with cascading delete
+    reviews = relationship("Review", backref="place", cascade="all, delete")
+
+    @property
+    def reviews(self):
+        """Getter for FileStorage to return the list of Review instances."""
+        if models.storage_t == 'db':
+            return self.reviews
+        else:
+            return [review for review in models.storage.all(Review).values() if review.place_id == self.id]
